@@ -7,6 +7,22 @@
 
 <h1>My Todo List</h1>
 
+<!-- ADD TASK FORM -->
+<div style="margin-bottom: 30px; padding: 20px; background-color: #f8f9fa; border-radius: 5px;">
+    <h3>Add New Task</h3>
+    <div style="display: flex; gap: 10px;">
+        <input type="text"
+               class="form-control"
+               placeholder="Enter task title..."
+               @bind="newTaskTitle"
+               @bind:event="oninput"
+               style="flex: 1;" />
+        <button class="btn btn-primary" @onclick="AddTask">
+            Add Task
+        </button>
+    </div>
+</div>
+
 <p>Here are all your tasks:</p>
 
 @if (todos == null)
@@ -36,7 +52,7 @@ else
         </button>
 
         <span style="margin: 0 15px;">
-            Page @currentPage of @totalPages
+            Page @currentPage of @totalPages (Showing @paginatedTodos.Count of @incompleteTodos.Count tasks)
         </span>
 
         <button class="btn btn-primary" @onclick="NextPage" disabled="@isLastPage">
@@ -48,6 +64,9 @@ else
 @code {
     // All todos from database
     private List<TodoItem>? todos;
+
+    // NEW: Field to store the new task title from the input
+    private string newTaskTitle = string.Empty;
 
     // Filtered list - only incomplete tasks
     private List<TodoItem> incompleteTodos =>
@@ -95,5 +114,27 @@ else
         {
             currentPage++;
         }
+    }
+
+    // NEW METHOD: Add a new task
+    private async Task AddTask()
+    {
+        // Validate: Don't add empty tasks
+        if (string.IsNullOrWhiteSpace(newTaskTitle))
+        {
+            return;
+        }
+
+        // Call the service to add the task to the database
+        await todoService.AddTaskAsync(newTaskTitle);
+
+        // Reload the entire list from the database to get the new task
+        todos = await todoService.GetAllAsync();
+
+        // Clear the input field
+        newTaskTitle = string.Empty;
+
+        // Reset to page 1 to see the new task
+        currentPage = 1;
     }
 }
