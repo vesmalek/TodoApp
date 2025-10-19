@@ -1,4 +1,6 @@
-﻿using TodoApp.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using TodoApp.Data;
+using TodoApp.Models;
 
 namespace TodoApp.Services
 {
@@ -12,5 +14,9 @@ namespace TodoApp.Services
         }
 
         // We will add our methods here (GetAllAsync, AddTaskAsync, etc.)
+        public async Task<List<TodoItem>> GetAllAsync()
+        {
+            return await _context.TodoItems.ToListAsync();
+        }
     }
 }

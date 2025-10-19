@@ -1,7 +1,43 @@
 ﻿@page "/"
+@using TodoApp.Models
+@using TodoApp.Services
+@inject TodoService todoService
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>My Todo List</h1>
 
-Welcome to your new app.
+<p>Here are all your tasks:</p>
+
+@if (todos == null)
+{
+    <p><em>Loading tasks...</em></p>
+}
+else if (todos.Count == 0)
+{
+    <p><em>No tasks found. Your list is empty!</em></p>
+}
+else
+{
+    <div>
+        @foreach (var item in todos)
+        {
+            <div style="margin-bottom: 10px;">
+                <input type="checkbox" checked="@item.IsDone" disabled />
+                <span>@item.Title</span>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    // Private field to store our todo items
+    private List<TodoItem>? todos;
+
+    // This method runs when the page is first loaded
+    protected override async Task OnInitializedAsync()
+    {
+        // Call our service to get all todos from the database
+        todos = await todoService.GetAllAsync();
+    }
+}
