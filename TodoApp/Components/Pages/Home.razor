@@ -3,9 +3,7 @@
 @using TodoApp.Services
 @inject TodoService todoService
 
-<PageTitle>Home</PageTitle>
-
-<h1>My Todo List</h1>
+<PageTitle>Todo App</PageTitle>
 
 <!-- ADD TASK FORM -->
 <div style="margin-bottom: 30px; padding: 20px; background-color: #f8f9fa; border-radius: 5px;">
@@ -22,8 +20,6 @@
         </button>
     </div>
 </div>
-
-<p>Here are all your tasks:</p>
 
 @if (todos == null)
 {
@@ -96,16 +92,16 @@ else
     // Field to store the new task title from the input
     private string newTaskTitle = string.Empty;
 
-    // NEW: Track which task is being edited (null = no task being edited)
+    // Track which task is being edited (null = no task being edited)
     private Guid? editingTaskId = null;
 
     // Filtered list - only incomplete tasks
     private List<TodoItem> incompleteTodos =>
         todos?.Where(t => !t.IsDone).ToList() ?? new List<TodoItem>();
 
-    // Pagination settings
+    // Pagination settings - CHANGED FROM 5 TO 10
     private int currentPage = 1;
-    private int pageSize = 5;
+    private int pageSize = 10;
 
     // Calculate total pages needed
     private int totalPages =>
@@ -179,19 +175,16 @@ else
         }
     }
 
-    // NEW METHOD: Enter edit mode for a task
+    // Enter edit mode for a task
     private void StartEditing(Guid id)
     {
         editingTaskId = id;
     }
 
-    // NEW METHOD: Exit edit mode and save changes
+    // Exit edit mode and save changes
     private async Task FinishEditing(TodoItem item)
     {
-        // Save the changes to the database
         await SaveTaskChanges(item);
-
-        // Exit edit mode
         editingTaskId = null;
     }
 }
