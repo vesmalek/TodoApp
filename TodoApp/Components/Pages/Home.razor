@@ -44,10 +44,28 @@ else
                        @bind="item.IsDone"
                        @bind:after="() => SaveTaskChanges(item)" />
 
-                <!-- Task Title -->
-                <span style="flex: 1;">@item.Title</span>
+                <!-- Task Title - Conditional Rendering -->
+                @if (editingTaskId == item.Id)
+                {
+                    <!-- EDIT MODE: Show input for editing -->
+                    <input type="text"
+                           class="form-control"
+                           @bind="item.Title"
+                           @bind:event="oninput"
+                           @onblur="() => FinishEditing(item)"
+                           style="flex: 1;" />
+                }
+                else
+                {
+                    <!-- VIEW MODE: Show span, click to edit -->
+                    <span @onclick="() => StartEditing(item.Id)"
+                          style="flex: 1; cursor: pointer; padding: 5px; border-radius: 3px;"
+                          title="Click to edit">
+                        @item.Title
+                    </span>
+                }
 
-                <!-- NEW: Delete Button -->
+                <!-- Delete Button -->
                 <button class="btn btn-danger btn-sm" @onclick="() => DeleteTask(item.Id)">
                     Delete
                 </button>
@@ -77,6 +95,9 @@ else
 
     // Field to store the new task title from the input
     private string newTaskTitle = string.Empty;
+
+    // NEW: Track which task is being edited (null = no task being edited)
+    private Guid? editingTaskId = null;
 
     // Filtered list - only incomplete tasks
     private List<TodoItem> incompleteTodos =>
@@ -146,20 +167,31 @@ else
         todos = await todoService.GetAllAsync();
     }
 
-    // NEW METHOD: Delete a task
+    // Delete a task
     private async Task DeleteTask(Guid id)
     {
-        // Call the service to delete the task from the database
         await todoService.DeleteTaskAsync(id);
-
-        // Reload the list to reflect the deletion
         todos = await todoService.GetAllAsync();
 
-        // Adjust pagination if necessary
-        // If we deleted the last item on a page, go back one page
         if (paginatedTodos.Count == 0 && currentPage > 1)
         {
             currentPage--;
         }
+    }
+
+    // NEW METHOD: Enter edit mode for a task
+    private void StartEditing(Guid id)
+    {
+        editingTaskId = id;
+    }
+
+    // NEW METHOD: Exit edit mode and save changes
+    private async Task FinishEditing(TodoItem item)
+    {
+        // Save the changes to the database
+        await SaveTaskChanges(item);
+
+        // Exit edit mode
+        editingTaskId = null;
     }
 }
