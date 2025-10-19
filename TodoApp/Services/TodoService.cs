@@ -51,5 +51,19 @@ namespace TodoApp.Services
             // Save the changes to the database
             await _context.SaveChangesAsync();
         }
+
+        // NEW METHOD: Delete a task by its ID
+        public async Task DeleteTaskAsync(Guid id)
+        {
+            // Find the task in the database by its ID
+            var task = await _context.TodoItems.FindAsync(id);
+
+            // If the task exists, remove it
+            if (task != null)
+            {
+                _context.TodoItems.Remove(task);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

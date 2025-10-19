@@ -38,12 +38,19 @@ else
     <div>
         @foreach (var item in paginatedTodos)
         {
-            <div style="margin-bottom: 10px;">
-                <!-- UPDATED: Interactive checkbox with binding and save -->
+            <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                <!-- Checkbox -->
                 <input type="checkbox"
                        @bind="item.IsDone"
                        @bind:after="() => SaveTaskChanges(item)" />
-                <span>@item.Title</span>
+
+                <!-- Task Title -->
+                <span style="flex: 1;">@item.Title</span>
+
+                <!-- NEW: Delete Button -->
+                <button class="btn btn-danger btn-sm" @onclick="() => DeleteTask(item.Id)">
+                    Delete
+                </button>
             </div>
         }
     </div>
@@ -132,14 +139,27 @@ else
         currentPage = 1;
     }
 
-    // NEW METHOD: Save changes to a task
+    // Save changes to a task
     private async Task SaveTaskChanges(TodoItem item)
     {
-        // Call the service to update the task in the database
         await todoService.UpdateTaskAsync(item);
-
-        // Reload the list to refresh the UI
-        // (since completed tasks disappear from our filtered list)
         todos = await todoService.GetAllAsync();
+    }
+
+    // NEW METHOD: Delete a task
+    private async Task DeleteTask(Guid id)
+    {
+        // Call the service to delete the task from the database
+        await todoService.DeleteTaskAsync(id);
+
+        // Reload the list to reflect the deletion
+        todos = await todoService.GetAllAsync();
+
+        // Adjust pagination if necessary
+        // If we deleted the last item on a page, go back one page
+        if (paginatedTodos.Count == 0 && currentPage > 1)
+        {
+            currentPage--;
+        }
     }
 }
