@@ -36,5 +36,20 @@ namespace TodoApp.Services
             // Save changes to the database (this actually writes to SQL Server)
             await _context.SaveChangesAsync();
         }
+
+        // NEW METHOD: Update an existing task
+        public async Task UpdateTaskAsync(TodoItem item)
+        {
+            // Attach the item to the DbContext
+            // (tells EF: "I want to track this object")
+            _context.Attach(item);
+
+            // Mark the entity's state as Modified
+            // (tells EF: "this object has changes that need to be saved")
+            _context.Entry(item).State = EntityState.Modified;
+
+            // Save the changes to the database
+            await _context.SaveChangesAsync();
+        }
     }
 }

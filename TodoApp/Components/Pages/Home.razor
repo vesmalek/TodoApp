@@ -39,7 +39,10 @@ else
         @foreach (var item in paginatedTodos)
         {
             <div style="margin-bottom: 10px;">
-                <input type="checkbox" checked="@item.IsDone" disabled />
+                <!-- UPDATED: Interactive checkbox with binding and save -->
+                <input type="checkbox"
+                       @bind="item.IsDone"
+                       @bind:after="() => SaveTaskChanges(item)" />
                 <span>@item.Title</span>
             </div>
         }
@@ -65,7 +68,7 @@ else
     // All todos from database
     private List<TodoItem>? todos;
 
-    // NEW: Field to store the new task title from the input
+    // Field to store the new task title from the input
     private string newTaskTitle = string.Empty;
 
     // Filtered list - only incomplete tasks
@@ -94,7 +97,6 @@ else
     // This method runs when the page is first loaded
     protected override async Task OnInitializedAsync()
     {
-        // Call our service to get all todos from the database
         todos = await todoService.GetAllAsync();
     }
 
@@ -116,25 +118,28 @@ else
         }
     }
 
-    // NEW METHOD: Add a new task
+    // Add a new task
     private async Task AddTask()
     {
-        // Validate: Don't add empty tasks
         if (string.IsNullOrWhiteSpace(newTaskTitle))
         {
             return;
         }
 
-        // Call the service to add the task to the database
         await todoService.AddTaskAsync(newTaskTitle);
-
-        // Reload the entire list from the database to get the new task
         todos = await todoService.GetAllAsync();
-
-        // Clear the input field
         newTaskTitle = string.Empty;
-
-        // Reset to page 1 to see the new task
         currentPage = 1;
+    }
+
+    // NEW METHOD: Save changes to a task
+    private async Task SaveTaskChanges(TodoItem item)
+    {
+        // Call the service to update the task in the database
+        await todoService.UpdateTaskAsync(item);
+
+        // Reload the list to refresh the UI
+        // (since completed tasks disappear from our filtered list)
+        todos = await todoService.GetAllAsync();
     }
 }
