@@ -13,14 +13,14 @@
 {
     <p><em>Loading tasks...</em></p>
 }
-else if (todos.Count == 0)
+else if (incompleteTodos.Count == 0)
 {
-    <p><em>No tasks found. Your list is empty!</em></p>
+    <p><em>No pending tasks! You've completed everything! 🎉</em></p>
 }
 else
 {
     <div>
-        @foreach (var item in todos)
+        @foreach (var item in paginatedTodos)
         {
             <div style="margin-bottom: 10px;">
                 <input type="checkbox" checked="@item.IsDone" disabled />
@@ -28,16 +28,72 @@ else
             </div>
         }
     </div>
+
+    <!-- Pagination Controls -->
+    <div style="margin-top: 20px;">
+        <button class="btn btn-primary" @onclick="PreviousPage" disabled="@isFirstPage">
+            Previous
+        </button>
+
+        <span style="margin: 0 15px;">
+            Page @currentPage of @totalPages
+        </span>
+
+        <button class="btn btn-primary" @onclick="NextPage" disabled="@isLastPage">
+            Next
+        </button>
+    </div>
 }
 
 @code {
-    // Private field to store our todo items
+    // All todos from database
     private List<TodoItem>? todos;
+
+    // Filtered list - only incomplete tasks
+    private List<TodoItem> incompleteTodos =>
+        todos?.Where(t => !t.IsDone).ToList() ?? new List<TodoItem>();
+
+    // Pagination settings
+    private int currentPage = 1;
+    private int pageSize = 5;
+
+    // Calculate total pages needed
+    private int totalPages =>
+        (int)Math.Ceiling((double)incompleteTodos.Count / pageSize);
+
+    // Get the current page's todos
+    private List<TodoItem> paginatedTodos =>
+        incompleteTodos
+            .Skip((currentPage - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+    // Check if we're on first or last page
+    private bool isFirstPage => currentPage == 1;
+    private bool isLastPage => currentPage >= totalPages;
 
     // This method runs when the page is first loaded
     protected override async Task OnInitializedAsync()
     {
         // Call our service to get all todos from the database
         todos = await todoService.GetAllAsync();
+    }
+
+    // Navigate to previous page
+    private void PreviousPage()
+    {
+        if (currentPage > 1)
+        {
+            currentPage--;
+        }
+    }
+
+    // Navigate to next page
+    private void NextPage()
+    {
+        if (currentPage < totalPages)
+        {
+            currentPage++;
+        }
     }
 }
